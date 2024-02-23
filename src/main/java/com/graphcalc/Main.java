@@ -1,32 +1,55 @@
 package com.graphcalc;
 
+import javax.swing.SwingUtilities;
+
 import org.mariuszgromada.math.mxparser.Argument;
 import org.mariuszgromada.math.mxparser.Expression;
 import org.mariuszgromada.math.mxparser.Function;
 
 public class Main {
     public static void main(String[] args) {
-        Function func = new Function("f", "a + b + c", "a", "b", "c");
-        System.out.println(func.calculate(1,2,3));
-        loopExample();
-        Function f = new Function(" ");
-        System.out.println(f.calculate(1));
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                new Plot();
+            }
+        });
     }
 
     // good practice!
     public static void loopExample() {
-        Function f = new Function("f", "-x", "x");
+        Function f = new Function("f(x) = -x");
         Argument x = new Argument("x");
         Expression e = new Expression("f(x)", f, x);
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < 5; i++) {
             x.setArgumentValue(i);
             System.out.println((int) e.calculate());
         }
     }
 
+    public static void moreExamples() {
+        Function func = new Function("f(a,b,c) = a + b + c");
+        System.out.println(func.calculate(1,2,3));
+        loopExample();
+        //Function f = new Function("f(x) = 5");
+        //System.out.println(f.calculate(15));
+        Argument a = new Argument("x", 1),
+                 k = new Argument("y", 0);
+        Expression e = new Expression("x^2 + y^2");
+        for (int i = 0; i < func.getArgumentsNumber(); i++) {
+            System.out.println(func.getArgument(i).getArgumentName());
+        }
+        e.addArguments(a, k);
+        System.out.println(e.calculate());
+        //func = new Function("f(a,b,c) = a + b + c");
+        func.setArgumentValue(0, 3);
+        System.out.println(func.calculate());
+        System.out.println();
+    }
+
     // merely an example of what can be done with the math library
     public static void example() {
-        System.out.println("Hello world!");
+        // System.out.println("Hello world!");
         Function At = new Function("At(b, h) = 1/2 * b * h");
         Expression e1 = new Expression("At(2,4)", At);
         System.out.println(e1.getExpressionString());
