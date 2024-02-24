@@ -7,6 +7,7 @@ import java.awt.Graphics2D;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.RenderingHints;
+import java.awt.Toolkit;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.geom.Line2D;
@@ -18,6 +19,10 @@ import java.util.Random;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
@@ -50,6 +55,7 @@ public class Plot extends JFrame {
         this.setBackground(Color.WHITE);
         this.setTitle("");
         this.add(generateMainPanel());
+        this.setJMenuBar(generateMenuBar());
         this.setDefaultCloseOperation(EXIT_ON_CLOSE);
         this.setSize(800, 600);
         //this.pack();
@@ -57,10 +63,54 @@ public class Plot extends JFrame {
         this.setVisible(true);
     }
 
+    private void removeAllFunctions() {
+        if (buttonsList.isEmpty()) {
+            Toolkit.getDefaultToolkit().beep();
+            JOptionPane.showMessageDialog(this, "There're no functions to remove", "Function list is empty", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        JPanel p = (JPanel) buttonsList.get(0).getParent();
+        p.removeAll();
+        p.revalidate();
+        p.repaint();
+
+        buttonToFunction.clear();
+        buttonsList.clear();
+        functionColors.clear();
+        functions.clear();
+        repaint();
+    }
+
+    private Color getRandomColor() {
+        Random rand = new Random();
+        float red = rand.nextFloat(),
+              green = rand.nextFloat(),
+              blue = rand.nextFloat();
+
+        Color fColor = new Color(red, green, blue).darker();
+        return fColor;
+    }
+
     private JSplitPane generateMainPanel() {
         JSplitPane panel = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, true, generateFunctionArea(), generatePlot());
         panel.setBackground(Color.WHITE);
         return panel;
+    }
+
+    private JMenuBar generateMenuBar() {
+        JMenuBar menuBar = new JMenuBar();
+        JMenu menu = new JMenu("File");
+        JMenuItem item = new JMenuItem("Clear function list");
+        item.addActionListener(e -> removeAllFunctions());
+        menu.add(item);
+
+        menu.addSeparator();
+        item = new JMenuItem("Exit");
+        item.addActionListener(e -> System.exit(0));
+        menu.add(item);
+        menuBar.add(menu);
+
+        return menuBar;
     }
 
     private JPanel generateFunctionArea() {
@@ -79,6 +129,7 @@ public class Plot extends JFrame {
                     if (checkText.isEmpty() || checkText.isBlank()) {
                         return;
                     }
+
                     String func = "";
                     if (!checkText.contains("f(x)")) {
                         func = "f(x) = ";
@@ -92,12 +143,7 @@ public class Plot extends JFrame {
                     }
                     functions.add(f);
 
-                    Random rand = new Random();
-                    float red = rand.nextFloat(),
-                          green = rand.nextFloat(),
-                          blue = rand.nextFloat();
-
-                    Color fColor = new Color(red, green, blue).darker();
+                    Color fColor = getRandomColor();
                     functionColors.put(f, fColor);
 
                     JButton b = new JButton(func);
@@ -166,14 +212,14 @@ public class Plot extends JFrame {
                 double percentX = 0, percentY = 0;
                 double mathX = 0, mathY = 0;
 
-                //int screenDiagonal = width * height / 2;
-
                 double halfWidth = width / 2;
                 double halfHeight = height / 2;
 
                 g2.setColor(Color.BLACK);
                 g2.draw(new Line2D.Double(halfWidth, 0, halfWidth, height));
                 g2.draw(new Line2D.Double(0, halfHeight, width, halfHeight));
+
+                g2.setColor(Color.GRAY);
 
                 for (int i = 0; i <= N; i++) {
                     percentX = i / N;
@@ -188,21 +234,20 @@ public class Plot extends JFrame {
                         if (mathX == 0) {
                             continue;
                         }
-                        g.drawString(String.valueOf((int) mathX), (int) x - 3, (int) halfHeight + 14);
-                        g.drawString(String.valueOf((int) mathX), (int) halfWidth + 4, height - (int) y + 3);
+                        g2.drawString(String.valueOf((int) mathX), (int) x - 3, (int) halfHeight + 14);
+                        g2.drawString(String.valueOf((int) mathX), (int) halfWidth + 4, height - (int) y + 3);
                     }
                 }
 
                 g2.setStroke(new BasicStroke(2));
 
-                long it = System.nanoTime();
+                ArrayList<Point2D.Double> points = new ArrayList<>();
                 for (Function f : functions) {
-                    ArrayList<Point2D.Double> points = new ArrayList<>();
                     if (!f.checkSyntax()) {
                         continue;
                     }
-                    for (int i = 0; i < N; i++) {
-                        percentX = i / (N - 1);
+                    for (int i = 0; i <= N; i++) {
+                        percentX = i / N;
     
                         mathX = percentX * (xMax - xMin) + xMin;
                         mathY = f.calculate(mathX); // f(x) The function
@@ -211,7 +256,6 @@ public class Plot extends JFrame {
     
                         x = percentX * width;
                         y = percentY * height;
-
                         points.add(new Point2D.Double(x, y));
                         //g2.fill(new Ellipse2D.Double(x, y, 3, 3));
                     }
@@ -221,26 +265,21 @@ public class Plot extends JFrame {
                     for (int i = 0; i < size; i++) {
                         Point2D.Double p1 = points.get(i),
                                        p2 = points.get(i + 1);
-                        if (Math.abs(p1.y - p2.y) > 15*yMax) {
+                        if (Math.abs(p1.y - p2.y) > 100*yMax) {
                             continue;
                         }
-                        if (height - p1.y <= 2 && height - p2.y <= 2) {
-                            continue;
-                        }
+                        // if (p1.x == p2.x && p1.y != p2.y) {
+                        //     continue;
+                        // }
+                        //if (height - p1.y <= 2 && height - p2.y <= 2) {
+                        //    continue;
+                        //}
                         g2.draw(new Line2D.Double(points.get(i), points.get(i + 1)));
                     }
                     points.clear();
                 }
-                System.out.println((System.nanoTime() - it) / 1e+9);
             }
         };
-
-        // int height = GraphicsEnvironment.getLocalGraphicsEnvironment()
-        //                                 .getDefaultScreenDevice().
-        //                                 getDisplayMode().
-        //                                 getHeight();
-
-        // panel.setMaximumSize(new Dimension(height, height));
         return panel;
     }
 }
