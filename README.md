@@ -1,4 +1,4 @@
-# Simple graphing 
+# Simple graphing calculator
 
 This was made as a learning experience. It isn't all that useful (nor optimized).
 
