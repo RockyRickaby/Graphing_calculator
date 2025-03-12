@@ -2,6 +2,7 @@ package com.graphcalc;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GridBagConstraints;
@@ -41,6 +42,8 @@ public class Plot extends JFrame {
     private ArrayList<JButton> buttonsList;
     private int xMin = -10, xMax = 10;
     private int yMin = -10, yMax = 10;
+
+    private boolean showGrid, showNumbers;
     
     public Plot() {
         buttonsList = new ArrayList<>();
@@ -48,12 +51,16 @@ public class Plot extends JFrame {
         buttonToFunction = new HashMap<>();
         functionColors = new HashMap<>();
 
+        showGrid = false;
+        showNumbers = true;
+
+        // optimizations
         mXparser.disableCanonicalRounding();
         mXparser.disableUlpRounding();
         mXparser.disableAlmostIntRounding();
 
         this.setBackground(Color.WHITE);
-        this.setTitle("");
+        this.setTitle("Graphing Calculator");
         this.add(generateMainPanel());
         this.setJMenuBar(generateMenuBar());
         this.setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -110,6 +117,22 @@ public class Plot extends JFrame {
         menu.add(item);
         menuBar.add(menu);
 
+        menu = new JMenu("Plot");
+        item = new JMenuItem("Show Grid");
+        item.addActionListener(e -> {
+            this.showGrid = !this.showGrid;
+            repaint();
+        });
+        menu.add(item);
+
+        item = new JMenuItem("Show numbers");
+        item.addActionListener(e -> {
+            this.showNumbers = !this.showNumbers;
+            repaint();
+        });
+        menu.add(item);
+        menuBar.add(menu);
+
         return menuBar;
     }
 
@@ -153,9 +176,11 @@ public class Plot extends JFrame {
                         JButton source = (JButton) act.getSource();
                         buttons.remove(source);
 
+                        Function aux = buttonToFunction.remove(source);
+                        
                         buttonsList.remove(source);
-                        functions.remove(buttonToFunction.get(source));
-                        functionColors.remove(buttonToFunction.remove(source));
+                        functions.remove(aux);
+                        functionColors.remove(aux);
 
                         buttons.removeAll();
                         buttons.revalidate();
@@ -192,8 +217,6 @@ public class Plot extends JFrame {
         gc.fill = GridBagConstraints.BOTH;
         gc.weightx =.0625;
         gc.weighty = 1;
-        //gc.anchor = GridBagConstraints.CENTER;
-        //scrollButtons.setPreferredSize(text.getPreferredSize());
         panel.add(scrollButtons, gc);
         return panel;
     }
@@ -234,8 +257,15 @@ public class Plot extends JFrame {
                         if (mathX == 0) {
                             continue;
                         }
-                        g2.drawString(String.valueOf((int) mathX), (int) x - 3, (int) halfHeight + 14);
-                        g2.drawString(String.valueOf((int) mathX), (int) halfWidth + 4, height - (int) y + 3);
+                        if (showGrid) g2.drawLine((int) x, 0, (int) x, height);
+                        if (showNumbers) g2.drawString(String.valueOf((int) mathX), (int) x - 3, (int) halfHeight + 14);
+                    }
+                    if (mathY == (int) mathY) {
+                        if (mathY == 0) {
+                            continue;
+                        }
+                        if (showGrid) g2.drawLine(0, (int) y, width, (int) y);
+                        if (showNumbers) g2.drawString(String.valueOf((int) mathY), (int) halfWidth + 4, height - (int) y + 3);
                     }
                 }
 
@@ -257,7 +287,6 @@ public class Plot extends JFrame {
                         x = percentX * width;
                         y = percentY * height;
                         points.add(new Point2D.Double(x, y));
-                        //g2.fill(new Ellipse2D.Double(x, y, 3, 3));
                     }
                     int size = points.size() - 1;
 
@@ -268,13 +297,7 @@ public class Plot extends JFrame {
                         if (Math.abs(p1.y - p2.y) > 100*yMax) {
                             continue;
                         }
-                        // if (p1.x == p2.x && p1.y != p2.y) {
-                        //     continue;
-                        // }
-                        //if (height - p1.y <= 2 && height - p2.y <= 2) {
-                        //    continue;
-                        //}
-                        g2.draw(new Line2D.Double(points.get(i), points.get(i + 1)));
+                        g2.draw(new Line2D.Double(p1, p2));
                     }
                     points.clear();
                 }

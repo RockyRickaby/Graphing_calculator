@@ -14,17 +14,35 @@ public class Main {
                 new Plot();
             }
         });
+        // loopExample();
     }
 
     // good practice!
     public static void loopExample() {
-        Function f = new Function("f(x) = -x");
-        Argument x = new Argument("x");
+        Function f = new Function("f(x) = x^2*sin(x^2)");
+        Argument x = new Argument("x", 1);
         Expression e = new Expression("f(x)", f, x);
-        for (int i = 0; i < 5; i++) {
-            x.setArgumentValue(i);
-            System.out.println((int) e.calculate());
+
+        long it = System.nanoTime();
+        e.calculate();
+        System.out.println((System.nanoTime() - it) / 1e6);
+        System.out.println(f.getComputingTime());
+
+        it = System.nanoTime();
+        e.calculate();
+        System.out.println((System.nanoTime() - it) / 1e6);
+        System.out.println(f.getComputingTime());
+
+        it = System.nanoTime();
+        for (int i = 0; i < 5000; i++) {
+            f.calculate(i);
+            f.calculate(i);
+            f.calculate(i);
+            f.calculate(i);
+            f.calculate(i);
+            // System.out.println(f.calculate(i));
         }
+        System.out.printf("Time elapsed: %fms\n", (System.nanoTime() - it) / 1e6);
     }
 
     public static void moreExamples() {

@@ -45,6 +45,30 @@
 				<artifactId>maven-surefire-plugin</artifactId>
 				<version>3.2.5</version>
 			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<configuration>
+					<archive>
+						<manifest>
+							<mainClass>com.graphcalc.Main</mainClass>
+						</manifest>
+					</archive>
+				</configuration>
+			</plugin>
+			<plugin>
+      			<groupId>org.apache.maven.plugins</groupId>
+      			<artifactId>maven-shade-plugin</artifactId>
+      			<version>3.5.2</version>
+      			<executions>
+      			    <execution>
+      			      	<phase>package</phase>
+      			      	<goals>
+      			    		<goal>shade</goal>
+      			      	</goals>
+      			    </execution>
+      			</executions>
+      		</plugin>
 		</plugins>
 	</build>
 
